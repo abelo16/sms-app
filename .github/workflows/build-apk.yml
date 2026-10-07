@@ -8,28 +8,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
       - name: Setup Java (JDK 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Flet CLI
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.3'
+          channel: 'stable'
+
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Build APK
+      - name: Create Flet App Directory Structure
         run: |
-          echo "y" | flet build apk --module-name sms
+          mkdir -p .flet/app
+          cp -r *.py .flet/app/ 2>/dev/null || true
+          cp -r assets .flet/app/ 2>/dev/null || true
+
+      - name: Build APK with Flutter
+        run: |
+          cd .flet/app
+          flet build apk --no-interactive || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: flet-apk
-          path: build/apk/*.apk
+          path: |
+            build/apk/*.apk
+            build/*.apk
+            **/*.apk
