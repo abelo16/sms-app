@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Java (JDK 17)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -25,22 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install flet
 
-      - name: Create Flet App Directory Structure
+      - name: Build APK with Flet
         run: |
-          mkdir -p .flet/app
-          cp -r *.py .flet/app/ 2>/dev/null || true
-          cp -r assets .flet/app/ 2>/dev/null || true
-
-      - name: Build APK with Flutter
-        run: |
-          cd .flet/app
-          flet build apk --no-interactive || true
+          flet build apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: flet-apk
-          path: |
-            build/apk/*.apk
-            build/*.apk
-            **/*.apk
+          path: build/apk/app-release.apk
