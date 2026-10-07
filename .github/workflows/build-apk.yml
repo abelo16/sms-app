@@ -32,7 +32,7 @@ jobs:
 
       - name: Build APK
         run: |
-          flet build apk --module-name sms --no-interactive
+          flet build apk --module-name sms
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
