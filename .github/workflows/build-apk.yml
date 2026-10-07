@@ -12,11 +12,9 @@ jobs:
         uses: flet-dev/flet-build-action@v1
         with:
           target: apk
-          working-directory: New folder/assets
-          archive-output: true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: New folder/assets/dist/*.apk
+          path: build/apk/*.apk
