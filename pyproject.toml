@@ -1,0 +1,3 @@
+﻿[tool.flet.android.permission]
+"android.permission.SEND_SMS" = true
+"android.permission.READ_PHONE_STATE" = true
