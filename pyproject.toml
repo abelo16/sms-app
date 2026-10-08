@@ -1,3 +1,15 @@
-﻿[tool.flet.android.permission]
+[project]
+name = "sms_sender"
+version = "1.0.0"
+description = "Bulk SMS sender"
+dependencies = ["flet", "plyer"]
+
+[tool.flet]
+org = "com.yourcompany"
+
+[tool.flet.app]
+module = "sms"
+
+[tool.flet.android.permission]
 "android.permission.SEND_SMS" = true
 "android.permission.READ_PHONE_STATE" = true
