@@ -8,6 +8,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Linux Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libgles2-mesa-dev
+
       - name: Setup Java (JDK 17)
         uses: actions/setup-java@v4
         with:
@@ -31,7 +36,7 @@ jobs:
 
       - name: Build APK
         run: |
-          echo "y" | flet build apk --module-name sms
+          flet build apk --module-name sms
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
