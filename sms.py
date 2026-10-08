@@ -9,15 +9,25 @@ def main(page: ft.Page):
     page.window_width = 450
     page.window_height = 800
     page.padding = 20
-    page.theme_mode = ft.ThemeMode.LIGHT
     page.scroll = ft.ScrollMode.AUTO
+
+    # Colors fallback for Flet updates
+    blue_700 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_700 if hasattr(ft, "Colors") else "blue700"
+    blue_400 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_400 if hasattr(ft, "Colors") else "blue400"
+    blue_600 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_600 if hasattr(ft, "Colors") else "blue600"
+    blue_800 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_800 if hasattr(ft, "Colors") else "blue800"
+    blue_900 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_900 if hasattr(ft, "Colors") else "blue900"
+    green_700 = getattr(ft, "Colors", getattr(ft, "colors", None)).GREEN_700 if hasattr(ft, "Colors") else "green700"
+    red_700 = getattr(ft, "Colors", getattr(ft, "colors", None)).RED_700 if hasattr(ft, "Colors") else "red700"
+    orange_700 = getattr(ft, "Colors", getattr(ft, "colors", None)).ORANGE_700 if hasattr(ft, "Colors") else "orange700"
+    white_color = getattr(ft, "Colors", getattr(ft, "colors", None)).WHITE if hasattr(ft, "Colors") else "white"
 
     # Title
     title = ft.Text(
         "የትምህርት ክፍል መልዕክት መላኪያ", 
         size=22, 
-        weight=ft.FontWeight.BOLD, 
-        color=ft.Colors.BLUE_700
+        weight="bold", 
+        color=blue_700
     )
 
     # Phone numbers input
@@ -26,7 +36,7 @@ def main(page: ft.Page):
         hint_text="ምሳሌ:\n0911223344\n0922334455",
         multiline=True,
         min_lines=5,
-        border_color=ft.Colors.BLUE_400
+        border_color=blue_400
     )
 
     # Message input
@@ -35,15 +45,15 @@ def main(page: ft.Page):
         hint_text="መልእክትህን እዚህ ፃፍ...",
         multiline=True,
         min_lines=4,
-        border_color=ft.Colors.BLUE_400
+        border_color=blue_400
     )
 
     # Status Text
-    status_text = ft.Text("", size=14, color=ft.Colors.BLUE_700, weight=ft.FontWeight.BOLD)
+    status_text = ft.Text("", size=14, color=blue_700, weight="bold")
     
     # Report Container
-    success_text = ft.Text("", size=13, color=ft.Colors.GREEN_700, selectable=True)
-    failed_text = ft.Text("", size=13, color=ft.Colors.RED_700, selectable=True)
+    success_text = ft.Text("", size=13, color=green_700, selectable=True)
+    failed_text = ft.Text("", size=13, color=red_700, selectable=True)
 
     # Global variable for failed numbers
     last_failed_numbers = []
@@ -52,11 +62,11 @@ def main(page: ft.Page):
     history_list = ft.Column()
 
     def send_process(numbers_list, message_text):
-        global last_failed_numbers
+        nonlocal last_failed_numbers
         total = len(numbers_list)
         
         status_text.value = f"መልእክት መላክ ተጀምሯል... (0/{total})"
-        status_text.color = ft.Colors.BLUE
+        status_text.color = blue_700
         success_text.value = ""
         failed_text.value = ""
         page.update()
@@ -82,7 +92,7 @@ def main(page: ft.Page):
         last_failed_numbers = failed_list
 
         status_text.value = f"የመላክ ሂደቱ ተጠናቋል። አጠቃላይ: {total}"
-        status_text.color = ft.Colors.BLUE_900
+        status_text.color = blue_900
 
         if sent_count > 0:
             success_text.value = f"ለ {sent_count} ሰዎች በተሳካ ሁኔታ ተልኳል!\nየተላከላቸው ቁጥሮች:\n" + ", ".join(sent_list)
@@ -94,11 +104,11 @@ def main(page: ft.Page):
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         history_item = ft.Container(
             content=ft.Column([
-                ft.Text(f"📅 ቀንና ሰዓት: {now}", weight=ft.FontWeight.BOLD, size=12),
+                ft.Text(f"📅 ቀንና ሰዓት: {now}", weight="bold", size=12),
                 ft.Text(f"💬 መልእክት: {message_text}", size=12),
-                ft.Text(f"📊 አጠቃላይ: {total} | ✅ የተላከ: {sent_count} | ❌ ያልተላከ: {failed_count}", size=12, color=ft.Colors.BLUE_800),
-                ft.Text(f"✅ የተላከላቸው: {', '.join(sent_list) if sent_list else 'ምንም'}", size=11, color=ft.Colors.GREEN_700, selectable=True),
-                ft.Text(f"❌ ያልተላከላቸው: {', '.join(failed_list) if failed_list else 'ምንም'}", size=11, color=ft.Colors.RED_700, selectable=True),
+                ft.Text(f"📊 አጠቃላይ: {total} | ✅ የተላከ: {sent_count} | ❌ ያልተላከ: {failed_count}", size=12, color=blue_800),
+                ft.Text(f"✅ የተላከላቸው: {', '.join(sent_list) if sent_list else 'ምንም'}", size=11, color=green_700, selectable=True),
+                ft.Text(f"❌ ያልተላከላቸው: {', '.join(failed_list) if failed_list else 'ምንም'}", size=11, color=red_700, selectable=True),
                 ft.Divider()
             ]),
             padding=10
@@ -113,7 +123,7 @@ def main(page: ft.Page):
 
         if not numbers_raw or not message:
             status_text.value = "እባክህ ቁጥሮችን እና መልእክት አስገባ!"
-            status_text.color = ft.Colors.RED
+            status_text.color = red_700
             page.update()
             return
 
@@ -123,7 +133,7 @@ def main(page: ft.Page):
 
         if not numbers:
             status_text.value = "ምንም የሚሰራ የስልክ ቁጥር አልተገኘም!"
-            status_text.color = ft.Colors.RED
+            status_text.color = red_700
             page.update()
             return
 
@@ -136,25 +146,28 @@ def main(page: ft.Page):
             send_process(last_failed_numbers, message)
         else:
             status_text.value = "ምንም ያልተላከለት የስልክ ቁጥር የለም!"
-            status_text.color = ft.Colors.ORANGE_700
+            status_text.color = orange_700
             page.update()
 
-    send_btn = ft.ElevatedButton(
+    # Button compatibility layer
+    ButtonClass = getattr(ft, "ElevatedButton", getattr(ft, "Button", None))
+
+    send_btn = ButtonClass(
         "መልእክት ላክ (Send SMS)",
         on_click=send_sms_click,
         style=ft.ButtonStyle(
-            color=ft.Colors.WHITE,
-            bgcolor=ft.Colors.BLUE_600,
+            color=white_color,
+            bgcolor=blue_600,
             padding=15
         )
     )
 
-    resend_btn = ft.ElevatedButton(
+    resend_btn = ButtonClass(
         "ያልተላከላቸውን በድጋሚ ላክ (Resend Failed)",
         on_click=resend_click,
         style=ft.ButtonStyle(
-            color=ft.Colors.WHITE,
-            bgcolor=ft.Colors.ORANGE_700,
+            color=white_color,
+            bgcolor=orange_700,
             padding=12
         )
     )
@@ -170,8 +183,10 @@ def main(page: ft.Page):
         success_text,
         failed_text,
         ft.Divider(),
-        ft.Text("የመልእክት ታሪክ (History):", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800),
+        ft.Text("የመልእክት ታሪክ (History):", size=16, weight="bold", color=blue_800),
         history_list
     )
 
-ft.app(target=main)
+if __name__ == "__main__":
+    app_runner = getattr(ft, "run", getattr(ft, "app", None))
+    app_runner(main)

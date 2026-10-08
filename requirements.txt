@@ -1,7 +1,1 @@
-﻿flet
-plyer
-requests
-certifi
-urllib3
-charset-normalizer
-idna
+﻿plyer
