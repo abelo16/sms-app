@@ -1,8 +1,17 @@
 import flet as ft
 from plyer import sms
-import time
+import asyncio
 import re
+import sys
 from datetime import datetime
+
+# Android ላይ መሆኑን ማረጋገጫ (Android ላይ ብቻ True ይሆናል)
+IS_ANDROID = hasattr(sys, "getandroidapilevel")
+
+if IS_ANDROID:
+    from flet_permission_handler import PermissionHandler, Permission
+else:
+    PermissionHandler = None  # Windows/Desktop ላይ import እንዳይደረግ
 
 def main(page: ft.Page):
     page.title = "የትምህርት ክፍል መልዕክት መላኪያ"
@@ -11,7 +20,14 @@ def main(page: ft.Page):
     page.padding = 20
     page.scroll = ft.ScrollMode.AUTO
 
-    # Colors fallback for Flet updates
+    # Permission Handler Setup — Android ላይ ብቻ ይፈጠራል
+    if IS_ANDROID:
+        ph = PermissionHandler()
+        page.overlay.append(ph)
+    else:
+        ph = None
+
+    # Colors fallback
     blue_700 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_700 if hasattr(ft, "Colors") else "blue700"
     blue_400 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_400 if hasattr(ft, "Colors") else "blue400"
     blue_600 = getattr(ft, "Colors", getattr(ft, "colors", None)).BLUE_600 if hasattr(ft, "Colors") else "blue600"
@@ -61,12 +77,30 @@ def main(page: ft.Page):
     # History List View
     history_list = ft.Column()
 
-    def send_process(numbers_list, message_text):
+    async def check_and_request_sms_permission():
+        """Runtime Permission ጥያቄ የሚያቀርብ ተግባር"""
+        if not IS_ANDROID or ph is None:
+            return True  # PC ላይ — ፍቃድ ጥያቄ የለም
+        try:
+            if not ph.has_permission(Permission.SMS):
+                return ph.request_permission(Permission.SMS)
+            return True
+        except Exception as e:
+            print(f"Permission check error: {e}")
+            return True
+
+    async def send_process(numbers_list, message_text):
         nonlocal last_failed_numbers
         total = len(numbers_list)
         
-        status_text.value = f"መልእክት መላክ ተጀምሯል... (0/{total})"
+        status_text.value = "የኤስኤምኤስ ፍቃድ በመፈተሽ ላይ..."
         status_text.color = blue_700
+        page.update()
+
+        # የRuntime permission ጥያቄ ማካሄድ
+        await check_and_request_sms_permission()
+        
+        status_text.value = f"መልእክት መላክ ተጀምሯል... (0/{total})"
         success_text.value = ""
         failed_text.value = ""
         page.update()
@@ -76,20 +110,23 @@ def main(page: ft.Page):
 
         for idx, num in enumerate(numbers_list, 1):
             try:
-                # Try sending SMS via SIM card
+                # መልእክት መላክ
                 sms.send(recipient=num, message=message_text)
                 sent_list.append(num)
-            except Exception:
-                # PC ላይ ከሆንክ እንደተላከ ይቆጠራል፤ በስልክ ላይ ግን ሲም ከሌለው ወደ failed ይገባል
-                sent_list.append(num)
+            except Exception as ex:
+                # እውነተኛውን የስህተት ምክንያት መያዝ
+                err_msg = str(ex) if str(ex) else "የፍቃድ ወይም የሲም ካርድ ችግር"
+                failed_list.append(f"{num} ({err_msg})")
 
-            status_text.value = f"እየተላከ ነው: {idx}/{total} ተልኳል"
+            status_text.value = f"እየተላከ ነው: {idx}/{total} ተካሂዷል"
             page.update()
-            time.sleep(0.5)
+            await asyncio.sleep(0.3)
 
         sent_count = len(sent_list)
         failed_count = len(failed_list)
-        last_failed_numbers = failed_list
+        
+        # ያልተላከላቸውን ቁጥሮች ብቻ ለResend ማዘጋጀት
+        last_failed_numbers = [item.split()[0] for item in failed_list]
 
         status_text.value = f"የመላክ ሂደቱ ተጠናቋል። አጠቃላይ: {total}"
         status_text.color = blue_900
@@ -98,7 +135,7 @@ def main(page: ft.Page):
             success_text.value = f"ለ {sent_count} ሰዎች በተሳካ ሁኔታ ተልኳል!\nየተላከላቸው ቁጥሮች:\n" + ", ".join(sent_list)
 
         if failed_count > 0:
-            failed_text.value = f"ለ {failed_count} ሰዎች አልተላከም!\nያልተላከላቸው ቁጥሮች:\n" + ", ".join(failed_list)
+            failed_text.value = f"ለ {failed_count} ሰዎች አልተላከም!\nምክንያት እና ቁጥሮች:\n" + "\n".join(failed_list)
 
         # Add to History
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -117,7 +154,7 @@ def main(page: ft.Page):
         page.update()
 
     # Main Send Action
-    def send_sms_click(e):
+    async def send_sms_click(e):
         numbers_raw = phone_input.value
         message = message_input.value
 
@@ -137,13 +174,13 @@ def main(page: ft.Page):
             page.update()
             return
 
-        send_process(numbers, message)
+        await send_process(numbers, message)
 
     # Resend Failed Action
-    def resend_click(e):
+    async def resend_click(e):
         message = message_input.value
         if last_failed_numbers and message:
-            send_process(last_failed_numbers, message)
+            await send_process(last_failed_numbers, message)
         else:
             status_text.value = "ምንም ያልተላከለት የስልክ ቁጥር የለም!"
             status_text.color = orange_700

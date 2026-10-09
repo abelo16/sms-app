@@ -1,15 +1,20 @@
 [project]
 name = "sms_sender"
-version = "1.0.0"
-description = "Bulk SMS sender"
-dependencies = ["flet", "plyer"]
+version = "0.1.0"
+description = "SMS Sender App"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "flet>=0.21.0",
+    "plyer",
+    "flet-permission-handler"
+]
 
 [tool.flet]
-org = "com.yourcompany"
+# Flet Build settings
 
-[tool.flet.app]
-module = "sms"
-
-[tool.flet.android.permission]
-"android.permission.SEND_SMS" = true
-"android.permission.READ_PHONE_STATE" = true
+[tool.flet.android]
+permissions = [
+    "android.permission.SEND_SMS",
+    "android.permission.READ_PHONE_STATE"
+]
